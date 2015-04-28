@@ -33,13 +33,15 @@ gulp.task('unit', function() {
 });
 
 var webpackOptions = {
-  debug: true,
+  // debug: true,
 };
 var webpackConfig = {};
 var CONFIG_FILENAME = webpack.config.CONFIG_FILENAME;
 
-gulp.task('webpack', [], function() {
-  return gulp.src(path.join(CONFIG_FILENAME))
+console.log('!!', path.join('test', 'unit', CONFIG_FILENAME));
+
+gulp.task('webpack:unit', [], function() {
+  return gulp.src(path.join('test', 'unit', CONFIG_FILENAME))
     .pipe(webpack.configure(webpackConfig))
     .pipe(webpack.overrides(webpackOptions))
     .pipe(webpack.compile())
@@ -60,7 +62,7 @@ gulp.task('test', ['jshint', 'jscs', 'unit', 'webpack']);
 gulp.task('default', ['test']);
 
 gulp.task('watch', function() {
-  gulp.watch(srcFiles, ['clearconsole', 'jshint', 'jscs', 'unit', 'webpack']);
-  gulp.watch(unitTestFiles, ['clearconsole', 'jshint', 'jscs', 'unit']);
-  gulp.watch(functionalTestFiles, ['clearconsole', 'jshint', 'jscs', 'webpack']);
+  gulp.watch(srcFiles, ['clearconsole', 'jshint', 'jscs', 'unit', 'webpack:unit']);
+  gulp.watch(unitTestFiles, ['clearconsole', 'jshint', 'jscs', 'unit', 'webpack:unit']);
+  gulp.watch(functionalTestFiles, ['clearconsole', 'jshint', 'jscs', 'webpack:functional']);
 });
