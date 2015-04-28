@@ -24,7 +24,11 @@
     "gulp-mocha": "^2.0.0",
     "gulp-webpack-build": "^0.7.0",
     "jshint-stylish": "^1.0.1",
-    "mocha": "^2.2.1"
+    "karma": "^0.12.31",
+    "karma-chrome-launcher": "^0.1.8",
+    "karma-mocha": "^0.1.10",
+    "mocha": "^2.2.1",
+    "mocha-loader": "^0.7.1"
   },
   "dependencies": {
     "bson": "^0.3.1",
