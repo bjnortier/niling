@@ -3,7 +3,7 @@ var path = require('path');
 var jshint = require('gulp-jshint');
 var jscs = require('gulp-jscs');
 var mocha = require('gulp-mocha');
-var webpack = require('gulp-webpack-build');
+// var webpack = require('gulp-webpack-build');
 
 var srcFiles = path.join('lib', '**', '*.js');
 var unitTestFiles = path.join('test', 'unit', '**', '*.test.js');
@@ -32,37 +32,37 @@ gulp.task('unit', function() {
     .pipe(mocha({}));
 });
 
-var webpackOptions = {
-  // debug: true,
-};
-var webpackConfig = {};
-var CONFIG_FILENAME = webpack.config.CONFIG_FILENAME;
+// var webpackOptions = {
+//   // debug: true,
+// };
+// var webpackConfig = {};
+// var CONFIG_FILENAME = webpack.config.CONFIG_FILENAME;
 
-console.log('!!', path.join('test', 'unit', CONFIG_FILENAME));
+// console.log('!!', path.join('.', '**', CONFIG_FILENAME));
 
-gulp.task('webpack:unit', [], function() {
-  return gulp.src(path.join('test', 'unit', CONFIG_FILENAME))
-    .pipe(webpack.configure(webpackConfig))
-    .pipe(webpack.overrides(webpackOptions))
-    .pipe(webpack.compile())
-    .pipe(webpack.format({
-      version: false,
-      timings: true
-    }))
-    .pipe(webpack.failAfter({
-      errors: true,
-      warnings: true
-    }));
-});
+// gulp.task('webpack:unit', [], function() {
+//   return gulp.src(path.join('.', '**', CONFIG_FILENAME), { base: path.resolve('.') })
+//     .pipe(webpack.configure(webpackConfig))
+//     .pipe(webpack.overrides(webpackOptions))
+//     .pipe(webpack.compile())
+//     .pipe(webpack.format({
+//       version: false,
+//       timings: true
+//     }))
+//     .pipe(webpack.failAfter({
+//       errors: true,
+//       warnings: true
+//     }));
+// });
 
 // ----- Aggregate Tasks -----
 
-gulp.task('test', ['jshint', 'jscs', 'unit', 'webpack']);
+gulp.task('test', ['jshint', 'jscs', 'unit']);
 
 gulp.task('default', ['test']);
 
 gulp.task('watch', function() {
-  gulp.watch(srcFiles, ['clearconsole', 'jshint', 'jscs', 'unit', 'webpack:unit']);
-  gulp.watch(unitTestFiles, ['clearconsole', 'jshint', 'jscs', 'unit', 'webpack:unit']);
+  gulp.watch(srcFiles, ['clearconsole', 'jshint', 'jscs', 'unit']);
+  gulp.watch(unitTestFiles, ['clearconsole', 'jshint', 'jscs', 'unit']);
   gulp.watch(functionalTestFiles, ['clearconsole', 'jshint', 'jscs', 'webpack:functional']);
 });
