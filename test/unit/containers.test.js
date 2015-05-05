@@ -34,10 +34,10 @@ describe('Containers', function() {
 
   });
 
-  it.only('can sync InMemory and SQLite', function(done) {
+  it('can sync InMemory and SQLite', function(done) {
 
-    var a = new InMemoryContainer('a');
-    var b = new SQLiteContainer('b');
+    var a = new InMemoryContainer('inmem');
+    var b = new SQLiteContainer('sqlite', ':memory:');
     var connector = new EventConnector(a,b);
 
     var syncs = [];
@@ -52,7 +52,7 @@ describe('Containers', function() {
       assert.isUndefined(err);
       var hash1 = results[0].hash;
       var hash2 = results[1].hash;
-      assert.deepEqual(syncs, [['a', 'b', hash1], ['b', 'a', hash2]]);
+      assert.deepEqual(syncs, [['inmem', 'sqlite', hash1], ['sqlite', 'inmem', hash2]]);
       done();
     });
 
