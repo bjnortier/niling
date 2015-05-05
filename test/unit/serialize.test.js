@@ -1,9 +1,9 @@
 var chai = require('chai');
 var assert = chai.assert;
 
-var hash = require('../../lib/hash');
+var serialize = require('../../lib/serialize');
 
-describe('Hashing', function() {
+describe('S11N', function() {
 
   it('produces the same hash for differently ordered objects', function() {
 
@@ -11,8 +11,8 @@ describe('Hashing', function() {
     var b = {bar: 'baz', foo: 1};
     var c = {};
 
-    assert.notEqual(hash(a), hash(c));
-    assert.equal(hash(a), hash(b));
+    assert.notEqual(serialize(a).hash, serialize(c).hash);
+    assert.equal(serialize(a).hash, serialize(b).hash);
   });
 
 });
