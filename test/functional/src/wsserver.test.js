@@ -21,20 +21,33 @@ var app = express();
 var http = require('http').Server(app);
 var io = require('socket.io')(http);
 
+var InMemoryContainer = require('../../../lib/containers/InMemoryContainer');
+var WebSocketConnector = require('../../../lib/connectors/WebSocketConnector');
+
+var container = new InMemoryContainer('serverinmem');
+
 app.use('/lib', express.static(path.join(__dirname, '..', 'lib')));
 
 app.get('/', function(req, res) {
   res.sendFile(__dirname + '/index.html');
 });
 
-
 io.on('connection', function(socket) {
   console.log('client connected');
-  socket.on('chat message', function(msg) {
-    console.log(msg);
-    io.emit('chat message', msg);
+  var wsConnector = new WebSocketConnector(socket, container);
+  wsConnector.on('synced', function(hash) {
+    console.log('synced to server', hash);
+  });
+
+  container.add({source: 'server', data: [10,11,12]}, function(err) {
+    if (err) {
+      console.error(err);
+    } else {
+      console.log('added data to server');
+    }
   });
 });
+
 
 http.listen(3000, function() {
   console.log('listening on *:3000');

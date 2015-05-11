@@ -10,6 +10,28 @@ var EventConnector = lib.connectors.EventConnector;
 
 describe('Containers', function() {
 
+  it('emits "added" on new object', function(done) {
+
+    var a = new InMemoryContainer('a');
+
+    var events = [];
+    a.on('added', function(hash) {
+      events.push(hash);
+    });
+
+    var silent = true;
+    async.series([
+      function(cb) { a.add({x: '1'}, cb); },
+      function(cb) { a.add({x: '1'}, cb); },
+      function(cb) { a.add({y: '2'}, silent, cb); },
+    ], function(err) {
+      assert.isUndefined(err);
+      assert.deepEqual(events, ['5970a7eb0315e488324eb6692061aac23b1133a2']);
+      done();
+    });
+
+  });
+
   it('can sync 2 InMemory containers with an event connector', function(done) {
 
     var a = new InMemoryContainer('a');
