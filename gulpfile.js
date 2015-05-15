@@ -55,7 +55,7 @@ gulp.task('webpack', [], function() {
 
 // ----- Aggregate Tasks -----
 
-gulp.task('test', ['jshint', 'jscs', 'unit']);
+gulp.task('test', ['jshint', 'jscs', 'unit', 'webpack']);
 
 gulp.task('default', ['test']);
 
