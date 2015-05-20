@@ -8,7 +8,7 @@ var InMemoryContainer = lib.containers.InMemoryContainer;
 var SQLiteContainer = lib.containers.SQLiteContainer;
 var EventConnector = lib.connectors.EventConnector;
 
-describe('Containers', function() {
+describe('Connectors', function() {
   
   it('can sync 2 InMemory containers with an event connector', function(done) {
 

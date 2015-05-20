@@ -5,7 +5,7 @@ var async = require('async');
 
 var InMemoryStore = require('../../lib/stores/InMemoryStore');
 
-describe.only('Stores', function() {
+describe('Stores', function() {
 
   var store;
   beforeEach(function() {

@@ -7,28 +7,7 @@ var Container = require('../../lib/containers/Container');
 var lib = require('../..');
 var InMemoryContainer = lib.containers.InMemoryContainer;
 
-describe('Containers', function() {
-
-  it('emits "added" on new object', function(done) {
-
-    var a = new InMemoryContainer('a');
-
-    var events = [];
-    a.on('added', function(hash) {
-      events.push(hash);
-    });
-
-    async.series([
-      function(cb) { a.addObject({x: '1'}, {}, cb); },
-      function(cb) { a.addObject({x: '1'}, {}, cb); },
-      function(cb) { a.addObject({y: '2'}, {silent: true}, cb); },
-    ], function(err) {
-      assert.isUndefined(err);
-      assert.deepEqual(events, ['5970a7eb0315e488324eb6692061aac23b1133a2']);
-      done();
-    });
-
-  });
+describe('__', function() {
 
   it('can validate references', function() {
     assert.isFalse(Container.validateReference('0123456789abcdef'));
