@@ -3,10 +3,9 @@ chai.config.includeStack = true;
 var assert = chai.assert;
 var async = require('async');
 
+var Container = require('../../lib/containers/Container');
 var lib = require('../..');
 var InMemoryContainer = lib.containers.InMemoryContainer;
-var SQLiteContainer = lib.containers.SQLiteContainer;
-var EventConnector = lib.connectors.EventConnector;
 
 describe('Containers', function() {
 
@@ -19,11 +18,10 @@ describe('Containers', function() {
       events.push(hash);
     });
 
-    var silent = true;
     async.series([
-      function(cb) { a.add({x: '1'}, cb); },
-      function(cb) { a.add({x: '1'}, cb); },
-      function(cb) { a.add({y: '2'}, silent, cb); },
+      function(cb) { a.addObject({x: '1'}, {}, cb); },
+      function(cb) { a.addObject({x: '1'}, {}, cb); },
+      function(cb) { a.addObject({y: '2'}, {silent: true}, cb); },
     ], function(err) {
       assert.isUndefined(err);
       assert.deepEqual(events, ['5970a7eb0315e488324eb6692061aac23b1133a2']);
@@ -32,52 +30,76 @@ describe('Containers', function() {
 
   });
 
-  it('can sync 2 InMemory containers with an event connector', function(done) {
+  it('can validate references', function() {
+    assert.isFalse(Container.validateReference('0123456789abcdef'));
+    assert.isTrue(Container.validateReference('_master'));
+    assert.isTrue(Container.validateReference('_0123456789abcdef'));
+  });
 
-    var a = new InMemoryContainer('a');
-    var b = new InMemoryContainer('b');
-    var connector = new EventConnector(a,b);
+  it('cannot create/update invalid references', function() {
+    var a = new InMemoryContainer('inmem');
 
-    var syncs = [];
-    connector.on('synced', function(from, to, ref) {
-      syncs.push([from, to, ref]);
-    });
-
-    async.series([
-      function(cb) { a.add({foo: 'bar'}, cb); },
-      function(cb) { b.add({foo: 'abcdef'}, cb); },
+    // Transform the async callback into a valid callback so
+    // all errors are collected
+    function collectErr(cb) {
+      return function(err) {
+        cb(null, err);
+      };
+    }
+    async.parallel([
+      function(cb) {
+        a.createRef('abc', {}, {}, collectErr(cb));
+      },
+      function(cb) {
+        a.createRef('123', {}, {}, collectErr(cb));
+      },
     ], function(err, results) {
       assert.isUndefined(err);
-      var hash1 = results[0].hash;
-      var hash2 = results[1].hash;
-      assert.deepEqual(syncs, [['a', 'b', hash1], ['b', 'a', hash2]]);
-      done();
+      assert.deepEqual(results, ['invalid reference', 'invalid reference']);
     });
 
   });
 
-  it('can sync InMemory and SQLite', function(done) {
+  it('can create new references', function(done) {
+    var a = new InMemoryContainer('inmem');
+
+    a.createRef('_foo', {bar: [1,2,3]}, {}, function(err, result) {
+      assert.isNull(err);
+      assert.deepEqual(result, {
+        added: true,
+        hash: '2ac6d6f92a35a1c1f2961396d58f3dab17018c73',
+      });
+
+      a.createRef('_foo', {baz: null}, {}, function(err) {
+        assert.equal(err, 'already exists: "_foo"');
+        done();
+      });
+    });
+  });
+
+  it('can update references', function(done) {
 
     var a = new InMemoryContainer('inmem');
-    var b = new SQLiteContainer('sqlite', ':memory:');
-    var connector = new EventConnector(a,b);
 
-    var syncs = [];
-    connector.on('synced', function(from, to, ref) {
-      syncs.push([from, to, ref]);
-    });
+    a.createRef('_foo', {bar: [1,2,3]}, {}, function(err, result) {
+      assert.isNull(err);
+      assert.deepEqual(result, {
+        added: true,
+        hash: '2ac6d6f92a35a1c1f2961396d58f3dab17018c73',
+      });
 
-    async.series([
-      function(cb) { a.add({foo: 'bar'}, cb); },
-      function(cb) { b.add({foo: 'abcdef'}, cb); },
-    ], function(err, results) {
-      assert.isUndefined(err);
-      var hash1 = results[0].hash;
-      var hash2 = results[1].hash;
-      assert.deepEqual(syncs, [['inmem', 'sqlite', hash1], ['sqlite', 'inmem', hash2]]);
-      done();
+      a.updateRef(
+        '_foo', 
+        {baz: [4,5,6]}, 
+        '2ac6d6f92a35a1c1f2961396d58f3dab17018c73',
+        {}, function(err) {
+          assert.isNull(err);
+          done();
+        });
     });
 
   });
+
+  it('will throw error on put of existing object');
 
 });
