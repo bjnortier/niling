@@ -4,81 +4,104 @@ var assert = chai.assert;
 var async = require('async');
 
 var Container = require('../../lib/containers/Container');
-var lib = require('../..');
-var InMemoryContainer = lib.containers.InMemoryContainer;
+var InMemoryStore = require('../../lib/stores/InMemoryStore');
 
-describe('__', function() {
+describe('Containers', function() {
 
-  it('can validate references', function() {
-    assert.isFalse(Container.validateReference('0123456789abcdef'));
-    assert.isTrue(Container.validateReference('_master'));
-    assert.isTrue(Container.validateReference('_0123456789abcdef'));
+  var container;
+  beforeEach(function() {
+    container = new Container('foo', new InMemoryStore());
   });
 
-  it('cannot create/update invalid references', function() {
-    var a = new InMemoryContainer('inmem');
+  it('can put/get objects and emits "put_obj"', function(done) {
 
-    // Transform the async callback into a valid callback so
-    // all errors are collected
-    function collectErr(cb) {
-      return function(err) {
-        cb(null, err);
-      };
-    }
-    async.parallel([
-      function(cb) {
-        a.createRef('abc', {}, {}, collectErr(cb));
+    var put_events = [];
+    container.on('put_obj', function(hash) {
+      put_events.push(hash);
+    });
+
+    async.series([
+      function(cb) { container.putObject({x: '1'}, {}, cb); },
+      function(cb) { container.putObject({x: '1'}, {}, cb); },
+      function(cb) { container.putObject({y: '2'}, {silent: true}, cb); },
+      function(cb) { container.getObject('5970a7eb0315e488324eb6692061aac23b1133a2', cb); },
+    ], function(err, results) {
+      assert.isUndefined(err);
+      assert.deepEqual(results, [
+        {
+          'added': true,
+          'hash': '5970a7eb0315e488324eb6692061aac23b1133a2',
+        },
+        {
+          'added': false,
+          'hash': '5970a7eb0315e488324eb6692061aac23b1133a2',
+        },
+        {
+          'added': true,
+          'hash': '461bb9003252acefc46bb732b46bee00946f57ef',
+        },
+        {
+          'x': '1'
+        },
+      ]);
+      assert.deepEqual(put_events, ['5970a7eb0315e488324eb6692061aac23b1133a2']);
+      done();
+    });
+
+  });
+
+  it('can put/get/update references and emits "put_ref"', function(done) {
+
+    var put_events = [];
+    container.on('put_ref', function(key, hash) {
+      put_events.push([key, hash]);
+    });
+    var update_events = [];
+    container.on('update_ref', function(key, prev, next) {
+      update_events.push([key, prev, next]);
+    });
+
+    async.series([
+      function(cb) { 
+        container.putReference('_design', {x: '1'}, {}, cb);
       },
-      function(cb) {
-        a.createRef('123', {}, {}, collectErr(cb));
+      function(cb) { 
+        container.getReference('_design', cb);
+      },
+      function(cb) { 
+        container.updateReference('_design', {x: '2'}, 
+          '5970a7eb0315e488324eb6692061aac23b1133a2', {}, cb);
+      },
+      function(cb) { 
+        container.getReference('_design', cb); 
       },
     ], function(err, results) {
       assert.isUndefined(err);
-      assert.deepEqual(results, ['invalid reference', 'invalid reference']);
+      assert.deepEqual(results, [
+        {
+          'version': '5970a7eb0315e488324eb6692061aac23b1133a2',
+        },
+        {
+          'x': '1',
+        },
+        {
+          'version': '812c794d2549ade4fbf39866b474a2ea2ead88da',
+        },
+        {
+          'x': '2'
+        },
+      ]);
+      assert.deepEqual(put_events, [['_design', '5970a7eb0315e488324eb6692061aac23b1133a2']]);
+      assert.deepEqual(update_events, [
+        [
+          '_design', 
+          '5970a7eb0315e488324eb6692061aac23b1133a2', 
+          '812c794d2549ade4fbf39866b474a2ea2ead88da'
+        ]
+      ]);
+      done();
     });
 
   });
-
-  it('can create new references', function(done) {
-    var a = new InMemoryContainer('inmem');
-
-    a.createRef('_foo', {bar: [1,2,3]}, {}, function(err, result) {
-      assert.isNull(err);
-      assert.deepEqual(result, {
-        added: true,
-        hash: '2ac6d6f92a35a1c1f2961396d58f3dab17018c73',
-      });
-
-      a.createRef('_foo', {baz: null}, {}, function(err) {
-        assert.equal(err, 'already exists: "_foo"');
-        done();
-      });
-    });
-  });
-
-  it('can update references', function(done) {
-
-    var a = new InMemoryContainer('inmem');
-
-    a.createRef('_foo', {bar: [1,2,3]}, {}, function(err, result) {
-      assert.isNull(err);
-      assert.deepEqual(result, {
-        added: true,
-        hash: '2ac6d6f92a35a1c1f2961396d58f3dab17018c73',
-      });
-
-      a.updateRef(
-        '_foo', 
-        {baz: [4,5,6]}, 
-        '2ac6d6f92a35a1c1f2961396d58f3dab17018c73',
-        {}, function(err) {
-          assert.isNull(err);
-          done();
-        });
-    });
-
-  });
-
-  it('will throw error on put of existing object');
 
 });
