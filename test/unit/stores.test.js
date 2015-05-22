@@ -4,17 +4,18 @@ var assert = chai.assert;
 var async = require('async');
 
 var bson = require('../../lib/bson');
-// var InMemoryStore = require('../../lib/stores/InMemoryStore');
-var SQLiteStore = require('../../lib/stores/SQLiteStore');
+var InMemoryStore = require('../../lib/stores/InMemoryStore');
+// var SQLiteStore = require('../../lib/stores/SQLiteStore');
 
 describe('Stores', function() {
 
   var store;
   beforeEach(function() {
-    store = new SQLiteStore(':memory:');
-    // store = new InMemoryStore();
+    // store = new SQLiteStore(':memory:');
+    store = new InMemoryStore();
   });
   
+
   it('can put/get objects', function(done) {
     async.series([
       function(cb) {
