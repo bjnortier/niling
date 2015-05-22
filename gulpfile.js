@@ -69,12 +69,12 @@ gulp.task('webpack:unit', [], function() {
 
 // ----- Aggregate Tasks -----
 
-gulp.task('test', ['jshint', 'jscs', 'unit', 'webpack']);
+gulp.task('test', ['jshint', 'jscs', 'unit', 'webpack:unit', 'webpack:functional']);
 
 gulp.task('default', ['test']);
 
 gulp.task('watch', function() {
   gulp.watch(srcFiles, ['clearconsole', 'jshint', 'jscs', 'unit', 'webpack:unit', 'webpack:functional']);
-  gulp.watch(unitTestFiles, ['clearconsole', 'jshint', 'jscs', 'unit', 'webpack:unit'])
+  gulp.watch([unitTestFiles, 'test/unit/*.js'], ['clearconsole', 'jshint', 'jscs', 'unit', 'webpack:unit'])
   gulp.watch(functionalTestFiles, ['clearconsole', 'jshint', 'jscs', 'webpack:functional']);
 });

@@ -5,22 +5,35 @@ var async = require('async');
 
 var bson = require('../../lib/bson');
 
-module.exports = function(name, Ctor, args) {
+module.exports = function(name, Ctor, options) {
 
   describe(name + 'Store', function() {
 
     // http://stackoverflow.com/questions/1606797/use-of-apply-with-new-operator-is-this-possible
-    function construct(constructor, args) {
+    function construct(constructor, options) {
       function F() {
-        return constructor.apply(this, args);
+        return constructor.call(this, options);
       }
       F.prototype = constructor.prototype;
       return new F();
     }
 
     var store;
-    beforeEach(function() {
-      store = construct(Ctor, args);
+    beforeEach(function(done) {
+      store = construct(Ctor, options);
+      if (store.init) {
+        store.init(done);
+      } else {
+        done();
+      }
+    });
+
+    afterEach(function(done) {
+      if (store.close) {
+        store.close(done);
+      } else {
+        done();
+      }
     });
 
     it('can put/get objects', function(done) {
