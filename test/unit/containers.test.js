@@ -3,78 +3,102 @@ chai.config.includeStack = true;
 var assert = chai.assert;
 var async = require('async');
 
-var lib = require('../..');
-var InMemoryContainer = lib.containers.InMemoryContainer;
-var SQLiteContainer = lib.containers.SQLiteContainer;
-var EventConnector = lib.connectors.EventConnector;
+var Container = require('../../lib/containers/Container');
+var InMemoryStore = require('../../lib/stores/InMemoryStore');
 
 describe('Containers', function() {
 
-  it('emits "added" on new object', function(done) {
+  var container;
+  beforeEach(function() {
+    container = new Container('foo', new InMemoryStore());
+  });
 
-    var a = new InMemoryContainer('a');
+  it('can put/get objects and emits "put_obj"', function(done) {
 
-    var events = [];
-    a.on('added', function(hash) {
-      events.push(hash);
+    var put_events = [];
+    container.on('put_obj', function(hash) {
+      put_events.push(hash);
     });
 
-    var silent = true;
     async.series([
-      function(cb) { a.add({x: '1'}, cb); },
-      function(cb) { a.add({x: '1'}, cb); },
-      function(cb) { a.add({y: '2'}, silent, cb); },
-    ], function(err) {
+      function(cb) { container.putObject({x: '1'}, {}, cb); },
+      function(cb) { container.putObject({x: '1'}, {}, cb); },
+      function(cb) { container.putObject({y: '2'}, {silent: true}, cb); },
+      function(cb) { container.getObject('5970a7eb0315e488324eb6692061aac23b1133a2', cb); },
+    ], function(err, results) {
       assert.isUndefined(err);
-      assert.deepEqual(events, ['5970a7eb0315e488324eb6692061aac23b1133a2']);
+      assert.deepEqual(results, [
+        {
+          'added': true,
+          'hash': '5970a7eb0315e488324eb6692061aac23b1133a2',
+        },
+        {
+          'added': false,
+          'hash': '5970a7eb0315e488324eb6692061aac23b1133a2',
+        },
+        {
+          'added': true,
+          'hash': '461bb9003252acefc46bb732b46bee00946f57ef',
+        },
+        {
+          'x': '1'
+        },
+      ]);
+      assert.deepEqual(put_events, ['5970a7eb0315e488324eb6692061aac23b1133a2']);
       done();
     });
 
   });
 
-  it('can sync 2 InMemory containers with an event connector', function(done) {
+  it('can put/get/update references and emits "put_ref"', function(done) {
 
-    var a = new InMemoryContainer('a');
-    var b = new InMemoryContainer('b');
-    var connector = new EventConnector(a,b);
-
-    var syncs = [];
-    connector.on('synced', function(from, to, ref) {
-      syncs.push([from, to, ref]);
+    var put_events = [];
+    container.on('put_ref', function(key, hash) {
+      put_events.push([key, hash]);
+    });
+    var update_events = [];
+    container.on('update_ref', function(key, prev, next) {
+      update_events.push([key, prev, next]);
     });
 
     async.series([
-      function(cb) { a.add({foo: 'bar'}, cb); },
-      function(cb) { b.add({foo: 'abcdef'}, cb); },
+      function(cb) { 
+        container.putReference('_design', {x: '1'}, {}, cb);
+      },
+      function(cb) { 
+        container.getReference('_design', cb);
+      },
+      function(cb) { 
+        container.updateReference('_design', {x: '2'}, 
+          '5970a7eb0315e488324eb6692061aac23b1133a2', {}, cb);
+      },
+      function(cb) { 
+        container.getReference('_design', cb); 
+      },
     ], function(err, results) {
       assert.isUndefined(err);
-      var hash1 = results[0].hash;
-      var hash2 = results[1].hash;
-      assert.deepEqual(syncs, [['a', 'b', hash1], ['b', 'a', hash2]]);
-      done();
-    });
-
-  });
-
-  it('can sync InMemory and SQLite', function(done) {
-
-    var a = new InMemoryContainer('inmem');
-    var b = new SQLiteContainer('sqlite', ':memory:');
-    var connector = new EventConnector(a,b);
-
-    var syncs = [];
-    connector.on('synced', function(from, to, ref) {
-      syncs.push([from, to, ref]);
-    });
-
-    async.series([
-      function(cb) { a.add({foo: 'bar'}, cb); },
-      function(cb) { b.add({foo: 'abcdef'}, cb); },
-    ], function(err, results) {
-      assert.isUndefined(err);
-      var hash1 = results[0].hash;
-      var hash2 = results[1].hash;
-      assert.deepEqual(syncs, [['inmem', 'sqlite', hash1], ['sqlite', 'inmem', hash2]]);
+      assert.deepEqual(results, [
+        {
+          'version': '5970a7eb0315e488324eb6692061aac23b1133a2',
+        },
+        {
+          'x': '1',
+        },
+        {
+          'version': '812c794d2549ade4fbf39866b474a2ea2ead88da',
+        },
+        {
+          'x': '2'
+        },
+      ]);
+      assert.deepEqual(put_events, [['_design', '5970a7eb0315e488324eb6692061aac23b1133a2']]);
+      assert.deepEqual(update_events, [
+        [
+          '_design', 
+          '5970a7eb0315e488324eb6692061aac23b1133a2', 
+          '812c794d2549ade4fbf39866b474a2ea2ead88da'
+        ]
+      ]);
       done();
     });
 

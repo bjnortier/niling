@@ -18,6 +18,7 @@
   "homepage": "https://github.com/bjnortier/niling",
   "devDependencies": {
     "chai": "^2.1.2",
+    "chalk": "^1.0.0",
     "express": "^4.12.3",
     "gulp": "^3.8.11",
     "gulp-jscs": "^1.4.0",
@@ -32,6 +33,7 @@
     "karma-webpack": "^1.5.0",
     "mocha": "^2.2.1",
     "mocha-loader": "^0.7.1",
+    "uuid": "^2.0.1",
     "webpack": "^1.8.10"
   },
   "dependencies": {
@@ -39,7 +41,6 @@
     "bson": "^0.3.1",
     "event-emitter": "^0.3.3",
     "lodash.isarray": "^3.0.2",
-    "lodash.isboolean": "^3.0.1",
     "lodash.isobject": "^3.0.1",
     "lodash.keys": "^3.0.6",
     "sha1": "^1.1.0",

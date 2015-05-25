@@ -1,3 +1,4 @@
 node_modules/
 test/functional/lib/*.bundle.js
+test/unit/*.bundle.js
 .DS_Store
