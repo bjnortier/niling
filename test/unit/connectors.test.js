@@ -35,7 +35,10 @@ describe('Connectors', function() {
       assert.isUndefined(err);
       var hash1 = results[0].hash;
       var hash2 = results[1].hash;
-      assert.deepEqual(syncs, [['a', 'b', hash1], ['b', 'a', hash2]]);
+      assert.deepEqual(syncs, [
+        ['a', 'b', {type: 'put_obj', hash: hash1}], 
+        ['b', 'a', {type: 'put_obj', hash: hash2}],
+      ]);
 
       // Silent put when receiving from a connector
       assert.deepEqual(puts, [hash1, hash2]);
@@ -79,10 +82,10 @@ describe('Connectors', function() {
     ], function(err) {
       assert.isUndefined(err);
       assert.deepEqual(syncs, [
-        ['a', 'b', 'ref1'], 
-        ['b', 'a', 'ref2'],
-        ['a', 'b', 'ref1'],
-        ['b', 'a', 'ref2'],
+        ['a', 'b', {key: 'ref1', type: 'put_ref'}], 
+        ['b', 'a', {key: 'ref2', type: 'put_ref'}],
+        ['a', 'b', {key: 'ref1', type: 'update_ref'}],
+        ['b', 'a', {key: 'ref2', type: 'update_ref'}],
       ]);
 
       // Silent put when receiving from a connector
@@ -91,30 +94,5 @@ describe('Connectors', function() {
     });
 
   });
-
-  // it('can sync InMemory and SQLite', function(done) {
-
-  //   var a = new InMemoryContainer('inmem');
-  //   var b = new SQLiteContainer('sqlite', ':memory:');
-  //   var connector = new EventConnector(a,b);
-
-  //   var syncs = [];
-  //   connector.on('synced', function(from, to, ref) {
-  //     syncs.push([from, to, ref]);
-  //   });
-
-  //   async.series([
-  //     function(cb) { a.addObject({foo: 'bar'}, {}, cb); },
-  //     function(cb) { b.addObject({foo: 'abcdef'}, {}, cb); },
-  //   ], function(err, results) {
-  //     assert.isUndefined(err);
-  //     var hash1 = results[0].hash;
-  //     var hash2 = results[1].hash;
-  //     assert.deepEqual(syncs, [['inmem', 'sqlite', hash1], ['sqlite', 'inmem', hash2]]);
-  //     done();
-  //   });
-
-  // });
-
 
 });

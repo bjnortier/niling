@@ -22,13 +22,13 @@ io.on('connection', function(socket) {
   console.log('client connected');
   var wsConnector = new WebSocketConnector(socket, container);
 
-  // container.putObject({source: 'server', data: [10,11,12]}, {}, function(err, result) {
-  //   if (err) {
-  //     console.error(chalk.red(err));
-  //   } else {
-  //     console.log('server put object success', result.hash);
-  //   }
-  // });
+  container.putObject({source: 'server', data: [10,11,12]}, {}, function(err, result) {
+    if (err) {
+      console.error(chalk.red(err));
+    } else {
+      console.log('server put object success', result.hash);
+    }
+  });
 
   var ref = uuid.v4().substr(0, 8);
 
@@ -57,6 +57,6 @@ io.on('connection', function(socket) {
 
 });
 
-http.listen(3000, function() {
-  console.log('listening on *:3000');
+http.listen(3001, function() {
+  console.log('listening on *:3001');
 });

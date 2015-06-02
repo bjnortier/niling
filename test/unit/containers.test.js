@@ -21,6 +21,7 @@ describe('Containers', function() {
     });
 
     async.series([
+      function(cb) { container.getObject('xxx', cb); },
       function(cb) { container.putObject({x: '1'}, {}, cb); },
       function(cb) { container.putObject({x: '1'}, {}, cb); },
       function(cb) { container.putObject({y: '2'}, {silent: true}, cb); },
@@ -28,6 +29,7 @@ describe('Containers', function() {
     ], function(err, results) {
       assert.isUndefined(err);
       assert.deepEqual(results, [
+        undefined,
         {
           'added': true,
           'hash': '5970a7eb0315e488324eb6692061aac23b1133a2',
@@ -63,6 +65,9 @@ describe('Containers', function() {
 
     async.series([
       function(cb) { 
+        container.getReference('_design', cb);
+      },
+      function(cb) { 
         container.putReference('_design', {x: '1'}, {}, cb);
       },
       function(cb) { 
@@ -78,6 +83,7 @@ describe('Containers', function() {
     ], function(err, results) {
       assert.isUndefined(err);
       assert.deepEqual(results, [
+        undefined,
         {
           'version': '5970a7eb0315e488324eb6692061aac23b1133a2',
         },

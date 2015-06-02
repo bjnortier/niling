@@ -75,6 +75,6 @@ gulp.task('default', ['test']);
 
 gulp.task('watch', function() {
   gulp.watch(srcFiles, ['clearconsole', 'jshint', 'jscs', 'unit', 'webpack:unit', 'webpack:functional']);
-  gulp.watch([unitTestFiles, 'test/unit/*.js'], ['clearconsole', 'jshint', 'jscs', 'unit', 'webpack:unit'])
+  gulp.watch([unitTestFiles, 'test/unit/storetestgenerate.js'], ['clearconsole', 'jshint', 'jscs', 'unit', 'webpack:unit'])
   gulp.watch(functionalTestFiles, ['clearconsole', 'jshint', 'jscs', 'webpack:functional']);
 });
