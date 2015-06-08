@@ -39,6 +39,9 @@ module.exports = function(name, Ctor, options) {
     it('can put/get objects', function(done) {
       async.series([
         function(cb) {
+          store.getObject('abd', cb);
+        },
+        function(cb) {
           store.putObject('abd', bson.serialize({foo: [1,2,3]}).bson, cb);
         },
         function(cb) {
@@ -49,16 +52,19 @@ module.exports = function(name, Ctor, options) {
         },
       ], function(err, result) {
         assert.isUndefined(err);
-        assert.equal(result.length, 3);
-        assert.isTrue(result[0]);
-        assert.isFalse(result[1]);
-        assert.deepEqual(bson.deserialize(result[2]), {foo: [1,2,3]});
+        assert.isUndefined(result[0]);
+        assert.isTrue(result[1]);
+        assert.isFalse(result[2]);
+        assert.deepEqual(bson.deserialize(result[3]), {foo: [1,2,3]});
         done();
       });
     });
 
     it('can put, update and get references', function(done) {
       async.series([
+        function(cb) {
+          store.getReference('abd', cb);
+        },
         function(cb) {
           store.putReference('abd', bson.serialize({bar: [100]}).bson, 0, cb);
         },
@@ -73,15 +79,15 @@ module.exports = function(name, Ctor, options) {
         },
       ], function(err, result) {
         assert.isUndefined(err);
-        assert.equal(result.length, 4);
+        assert.equal(result.length, 5);
 
         assert.isUndefined(result[0]);
-        assert.deepEqual(bson.deserialize(result[1][0]), {bar: [100]});
-        assert.equal(result[1][1], 0);
-
-        assert.isUndefined(result[2]);
-        assert.deepEqual(bson.deserialize(result[3][0]), {bar: []});
-        assert.equal(result[3][1], 1);
+        assert.isUndefined(result[1]);
+        assert.deepEqual(bson.deserialize(result[2][0]), {bar: [100]});
+        assert.equal(result[2][1], 0);
+        assert.isUndefined(result[3]);
+        assert.deepEqual(bson.deserialize(result[4][0]), {bar: []});
+        assert.equal(result[4][1], 1);
         done();
       });
     });
@@ -121,6 +127,51 @@ module.exports = function(name, Ctor, options) {
         },
       ], function(err) {
         assert.equal(err, 'wrong version for updating reference "abd"');
+        done();
+      });
+    });
+
+    it('can delete references', function(done) {
+      async.series([
+        function(cb) {
+          store.putReference('abd', bson.serialize({bar: [100]}).bson, 0, cb);
+        },
+        function(cb) {
+          store.deleteReference('abd', 0, cb);
+        },
+        function(cb) {
+          store.getReference('abd', cb);
+        },
+      ], function(err, results) {
+        assert.isUndefined(err);
+        assert.isUndefined(results[0]);
+        assert.isUndefined(results[1]);
+        assert.isUndefined(results[2]);
+        done();
+      });
+    });
+
+    it('cannot delete non-existing references', function(done) {
+      async.series([
+        function(cb) {
+          store.deleteReference('abd', 0, cb);
+        },
+      ], function(err) {
+        assert.equal(err, 'cannot delete non-existing reference "abd"');
+        done();
+      });
+    });
+
+    it('must delete references with the right version', function(done) {
+      async.series([
+        function(cb) {
+          store.putReference('abd', bson.serialize({bar: [100]}).bson, 0, cb);
+        },
+        function(cb) {
+          store.deleteReference('abd', 5, cb);
+        },
+      ], function(err) {
+        assert.equal(err, 'wrong version for deleting reference "abd"');
         done();
       });
     });
