@@ -87,15 +87,21 @@ describe('Containers', function() {
         {
           'version': '5970a7eb0315e488324eb6692061aac23b1133a2',
         },
-        {
-          'x': '1',
-        },
+        [
+          {
+            'x': '1',
+          },
+          '5970a7eb0315e488324eb6692061aac23b1133a2',
+        ],
         {
           'version': '812c794d2549ade4fbf39866b474a2ea2ead88da',
         },
-        {
-          'x': '2'
-        },
+        [
+          {
+            'x': '2',
+          },
+          '812c794d2549ade4fbf39866b474a2ea2ead88da',
+        ],
       ]);
       assert.deepEqual(put_events, [['_design', '5970a7eb0315e488324eb6692061aac23b1133a2']]);
       assert.deepEqual(update_events, [
