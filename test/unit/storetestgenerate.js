@@ -21,19 +21,11 @@ module.exports = function(name, Ctor, options) {
     var store;
     beforeEach(function(done) {
       store = construct(Ctor, options);
-      if (store.init) {
-        store.init(done);
-      } else {
-        done();
-      }
+      store.init(done);
     });
 
     afterEach(function(done) {
-      if (store.close) {
-        store.close(done);
-      } else {
-        done();
-      }
+      store.close(done);
     });
 
     it('can put/get objects', function(done) {
